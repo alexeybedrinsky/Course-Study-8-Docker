@@ -3,7 +3,9 @@ version: '3.8'
 services:
   web:
     build: .
-    command: python manage.py runserver 0.0.0.0:8000
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"
     volumes:
       - .:/app
     ports:
@@ -11,18 +13,15 @@ services:
     depends_on:
       - db
       - redis
-    environment:
-      - DATABASE_URL=postgres://postgres:postgres@db:5432/habits
-      - REDIS_URL=redis://redis:6379/0
+    env_file:
+      - .env
 
   db:
     image: postgres:13
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    environment:
-      - POSTGRES_DB=habits
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
+    env_file:
+      - .env
 
   redis:
     image: redis:6
@@ -35,9 +34,8 @@ services:
     depends_on:
       - db
       - redis
-    environment:
-      - DATABASE_URL=postgres://postgres:postgres@db:5432/habits
-      - REDIS_URL=redis://redis:6379/0
+    env_file:
+      - .env
 
   celery-beat:
     build: .
@@ -47,9 +45,8 @@ services:
     depends_on:
       - db
       - redis
-    environment:
-      - DATABASE_URL=postgres://postgres:postgres@db:5432/habits
-      - REDIS_URL=redis://redis:6379/0
+    env_file:
+      - .env
 
 volumes:
   postgres_data:
